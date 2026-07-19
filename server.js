@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const cors = require('cors');
 const path = require('path');
 const { connectDB } = require('./src/config/db');
 
@@ -21,16 +21,27 @@ const isProduction = process.env.NODE_ENV === 'production';
 // "secure" ci-dessous fonctionne.
 if (isProduction) app.set('trust proxy', 1);
 
+// TODO: remplace par l'URL exacte de ton site GitHub Pages
+// (ex: 'https://tonpseudo.github.io')
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://xezy-b2.github.io/CardsCapture/';
+
+app.use(
+  cors({
+    origin: FRONTEND_ORIGIN,
+    credentials: true
+  })
+);
+
 app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'dev-secret-change-moi',
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI, collectionName: 'sessions' }),
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
-      secure: isProduction // cookie envoyé seulement en HTTPS en production
+      secure: isProduction, // cookie envoyé seulement en HTTPS en production
+      sameSite: isProduction ? 'none' : 'lax' // 'none' nécessaire pour le cross-domain GitHub Pages <-> Render
     }
   })
 );
