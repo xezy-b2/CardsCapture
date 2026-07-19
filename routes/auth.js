@@ -35,7 +35,15 @@ router.get('/callback', async (req, res) => {
       })
     });
 
-    if (!tokenRes.ok) throw new Error(`Échange de token échoué (${tokenRes.status})`);
+    if (!tokenRes.ok) {
+      if (tokenRes.status === 429) {
+        const retryAfter = tokenRes.headers.get('retry-after');
+        const resetAfter = tokenRes.headers.get('x-ratelimit-reset-after');
+        const bucket = tokenRes.headers.get('x-ratelimit-bucket');
+        console.error(`[Rate limit Discord] retry-after=${retryAfter}s | reset-after=${resetAfter}s | bucket=${bucket}`);
+      }
+      throw new Error(`Échange de token échoué (${tokenRes.status})`);
+    }
     const tokenData = await tokenRes.json();
 
     const userRes = await fetch(`${DISCORD_API}/users/@me`, {
