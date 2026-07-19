@@ -580,7 +580,10 @@ function renderDeckSlots() {
     const card = state.deckDraft[index];
     if (card) {
       slotEl.classList.add('is-filled');
-      slotEl.innerHTML = `<img src="${card.imageUrl}" alt="" /><span class="deck-slot__name">${card.nameFr}</span>`;
+      const imageHtml = card.imageUrl
+        ? `<img src="${card.imageUrl}" alt="" />`
+        : '<div class="card-tile__image--none">🃏</div>';
+      slotEl.innerHTML = `${imageHtml}<span class="deck-slot__name">${card.nameFr}</span>`;
     } else {
       slotEl.classList.remove('is-filled');
       slotEl.innerHTML = '<span class="deck-slot__empty">+ Ajouter</span>';
@@ -606,7 +609,7 @@ function renderDeckPickerList(cards, term) {
   el.deckPickerList.innerHTML = filtered.map((c) => `
     <div class="card-tile" data-rarity="${c.rarity}" data-card='${JSON.stringify(c)}'>
       <div class="card-tile__dex">№${c.localId}</div>
-      <img class="card-tile__image" src="${c.imageUrl}" alt="${c.nameFr}" />
+      ${c.imageUrl ? `<img class="card-tile__image" src="${c.imageUrl}" alt="${c.nameFr}" />` : '<div class="card-tile__image--none">🃏</div>'}
       <div class="card-tile__name">${c.nameFr}</div>
       ${c.quantity > 1 ? `<div class="card-tile__quantity">×${c.quantity}</div>` : ''}
     </div>
