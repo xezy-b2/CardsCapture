@@ -62,12 +62,9 @@ const el = {
   boosterCompletionMessage: document.getElementById('boosterCompletionMessage')
 };
 
-const API_BASE = 'https://cardscapture.onrender.com';
-
 async function api(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
+  const res = await fetch(path, {
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include', // envoie le cookie de session Discord au backend
     ...options
   });
   const data = await res.json().catch(() => ({}));
@@ -80,9 +77,31 @@ function trainerName(id) {
   return state.trainersById.get(id) || id;
 }
 
+const AUTH_ERROR_MESSAGES = {
+  connexion_annulee: 'Connexion annulée.',
+  connexion_echouee: 'La connexion avec Discord a échoué, réessaie.',
+  discord_rate_limit: 'Discord limite temporairement les connexions (trop de tentatives). Réessaie dans une minute.'
+};
+
+function showAuthErrorIfAny() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('erreur');
+  if (!code) return;
+
+  const banner = document.createElement('div');
+  banner.className = 'auth-error-banner';
+  banner.textContent = AUTH_ERROR_MESSAGES[code] || 'Une erreur est survenue.';
+  document.body.prepend(banner);
+
+  // Nettoie l'URL pour ne pas garder ?erreur= si on recharge la page
+  window.history.replaceState({}, '', window.location.pathname);
+}
+
 /* ===================== INIT / AUTH ===================== */
 
 async function init() {
+  showAuthErrorIfAny();
+
   const { user } = await api('/auth/me');
   state.currentUser = user;
   renderAuthArea();
@@ -108,14 +127,14 @@ function renderAuthArea() {
       <span>${state.currentUser.username}</span>
     `;
     const logoutBtn = document.createElement('a');
-    logoutBtn.href = `${API_BASE}/auth/logout`;
+    logoutBtn.href = '/auth/logout';
     logoutBtn.className = 'btn-logout';
     logoutBtn.textContent = 'Déconnexion';
     el.authArea.appendChild(wrap);
     el.authArea.appendChild(logoutBtn);
   } else {
     const loginBtn = document.createElement('a');
-    loginBtn.href = `${API_BASE}/auth/login`;
+    loginBtn.href = '/auth/login';
     loginBtn.className = 'btn-discord';
     loginBtn.textContent = 'Se connecter avec Discord';
     el.authArea.appendChild(loginBtn);
@@ -580,10 +599,7 @@ function renderDeckSlots() {
     const card = state.deckDraft[index];
     if (card) {
       slotEl.classList.add('is-filled');
-      const imageHtml = card.imageUrl
-        ? `<img src="${card.imageUrl}" alt="" />`
-        : '<div class="card-tile__image--none">🃏</div>';
-      slotEl.innerHTML = `${imageHtml}<span class="deck-slot__name">${card.nameFr}</span>`;
+      slotEl.innerHTML = `<img src="${card.imageUrl}" alt="" /><span class="deck-slot__name">${card.nameFr}</span>`;
     } else {
       slotEl.classList.remove('is-filled');
       slotEl.innerHTML = '<span class="deck-slot__empty">+ Ajouter</span>';
@@ -606,10 +622,10 @@ async function openDeckPicker(slotIndex) {
 
 function renderDeckPickerList(cards, term) {
   const filtered = cards.filter((c) => c.nameFr.toLowerCase().includes(term));
-  el.deckPickerList.innerHTML = filtered.map((c) => `
-    <div class="card-tile" data-rarity="${c.rarity}" data-card='${JSON.stringify(c)}'>
+  el.deckPickerList.innerHTML = filtered.map((c, i) => `
+    <div class="card-tile" data-rarity="${c.rarity}" data-index="${i}">
       <div class="card-tile__dex">№${c.localId}</div>
-      ${c.imageUrl ? `<img class="card-tile__image" src="${c.imageUrl}" alt="${c.nameFr}" />` : '<div class="card-tile__image--none">🃏</div>'}
+      <img class="card-tile__image" src="${c.imageUrl}" alt="${c.nameFr}" />
       <div class="card-tile__name">${c.nameFr}</div>
       ${c.quantity > 1 ? `<div class="card-tile__quantity">×${c.quantity}</div>` : ''}
     </div>
@@ -617,7 +633,7 @@ function renderDeckPickerList(cards, term) {
 
   el.deckPickerList.querySelectorAll('.card-tile').forEach((tile) => {
     tile.addEventListener('click', () => {
-      const card = JSON.parse(tile.dataset.card);
+      const card = filtered[Number(tile.dataset.index)];
       state.deckDraft[state.activeDeckSlot] = card;
       renderDeckSlots();
       el.deckPicker.hidden = true;
