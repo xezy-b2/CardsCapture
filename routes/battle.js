@@ -28,98 +28,128 @@ function computeScore(deck) {
 }
 
 router.get('/incoming', requireAuth, async (req, res) => {
-  const battles = await Battle.find({ opponentId: req.session.user.id, status: 'en_attente' }).lean();
-  res.json({ battles });
+  try {
+    const battles = await Battle.find({ opponentId: req.session.user.id, status: 'en_attente' }).lean();
+    res.json({ battles });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.get('/outgoing', requireAuth, async (req, res) => {
-  const battles = await Battle.find({ challengerId: req.session.user.id, status: 'en_attente' }).lean();
-  res.json({ battles });
+  try {
+    const battles = await Battle.find({ challengerId: req.session.user.id, status: 'en_attente' }).lean();
+    res.json({ battles });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.get('/history', requireAuth, async (req, res) => {
-  const userId = req.session.user.id;
-  const battles = await Battle.find({
-    status: 'terminee',
-    $or: [{ challengerId: userId }, { opponentId: userId }]
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-  res.json({ battles });
+  try {
+    const userId = req.session.user.id;
+    const battles = await Battle.find({
+      status: 'terminee',
+      $or: [{ challengerId: userId }, { opponentId: userId }]
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+    res.json({ battles });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.post('/challenge', requireAuth, async (req, res) => {
-  const { opponentUserId } = req.body;
-  const challengerId = req.session.user.id;
+  try {
+    const { opponentUserId } = req.body;
+    const challengerId = req.session.user.id;
 
-  if (!opponentUserId || opponentUserId === challengerId) {
-    return res.status(400).json({ error: 'Adversaire invalide.' });
+    if (!opponentUserId || opponentUserId === challengerId) {
+      return res.status(400).json({ error: 'Adversaire invalide.' });
+    }
+
+    const [challenger, opponent] = await Promise.all([
+      User.findOne({ userId: challengerId }),
+      User.findOne({ userId: opponentUserId })
+    ]);
+
+    if (!challenger || !challenger.deck || challenger.deck.length !== 3) {
+      return res.status(400).json({ error: 'Tu dois avoir un deck complet de 3 cartes avant de défier quelqu\'un.' });
+    }
+    if (!opponent || !opponent.deck || opponent.deck.length !== 3) {
+      return res.status(400).json({ error: "Cet adversaire n'a pas encore de deck complet de 3 cartes." });
+    }
+
+    const battle = await Battle.create({ challengerId, opponentId: opponentUserId });
+    res.json({ battle });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-
-  const [challenger, opponent] = await Promise.all([
-    User.findOne({ userId: challengerId }),
-    User.findOne({ userId: opponentUserId })
-  ]);
-
-  if (!challenger || !challenger.deck || challenger.deck.length !== 3) {
-    return res.status(400).json({ error: 'Tu dois avoir un deck complet de 3 cartes avant de défier quelqu\'un.' });
-  }
-  if (!opponent || !opponent.deck || opponent.deck.length !== 3) {
-    return res.status(400).json({ error: "Cet adversaire n'a pas encore de deck complet de 3 cartes." });
-  }
-
-  const battle = await Battle.create({ challengerId, opponentId: opponentUserId });
-  res.json({ battle });
 });
 
 router.post('/:id/decline', requireAuth, async (req, res) => {
-  const battle = await Battle.findById(req.params.id);
-  if (!battle) return res.status(404).json({ error: 'Défi introuvable.' });
-  if (battle.opponentId !== req.session.user.id) return res.status(403).json({ error: "Ce défi ne t'est pas destiné." });
-  if (battle.status !== 'en_attente') return res.status(400).json({ error: 'Ce défi a déjà été traité.' });
+  try {
+    const battle = await Battle.findById(req.params.id);
+    if (!battle) return res.status(404).json({ error: 'Défi introuvable.' });
+    if (battle.opponentId !== req.session.user.id) return res.status(403).json({ error: "Ce défi ne t'est pas destiné." });
+    if (battle.status !== 'en_attente') return res.status(400).json({ error: 'Ce défi a déjà été traité.' });
 
-  battle.status = 'refusee';
-  await battle.save();
-  res.json({ battle });
+    battle.status = 'refusee';
+    await battle.save();
+    res.json({ battle });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
 
 router.post('/:id/accept', requireAuth, async (req, res) => {
-  const battle = await Battle.findById(req.params.id);
-  if (!battle) return res.status(404).json({ error: 'Défi introuvable.' });
-  if (battle.opponentId !== req.session.user.id) return res.status(403).json({ error: "Ce défi ne t'est pas destiné." });
-  if (battle.status !== 'en_attente') return res.status(400).json({ error: 'Ce défi a déjà été traité.' });
+  try {
+    const battle = await Battle.findById(req.params.id);
+    if (!battle) return res.status(404).json({ error: 'Défi introuvable.' });
+    if (battle.opponentId !== req.session.user.id) return res.status(403).json({ error: "Ce défi ne t'est pas destiné." });
+    if (battle.status !== 'en_attente') return res.status(400).json({ error: 'Ce défi a déjà été traité.' });
 
-  const [challenger, opponent] = await Promise.all([
-    User.findOne({ userId: battle.challengerId }).populate('deck'),
-    User.findOne({ userId: battle.opponentId }).populate('deck')
-  ]);
+    const [challenger, opponent] = await Promise.all([
+      User.findOne({ userId: battle.challengerId }).populate('deck'),
+      User.findOne({ userId: battle.opponentId }).populate('deck')
+    ]);
 
-  if (!challenger?.deck || challenger.deck.length !== 3 || !opponent?.deck || opponent.deck.length !== 3) {
-    return res.status(400).json({ error: "Un des deux decks n'est plus complet (3 cartes requises)." });
+    if (!challenger?.deck || challenger.deck.length !== 3 || !opponent?.deck || opponent.deck.length !== 3) {
+      return res.status(400).json({ error: "Un des deux decks n'est plus complet (3 cartes requises)." });
+    }
+
+    const challengerScore = computeScore(challenger.deck);
+    const opponentScore = computeScore(opponent.deck);
+    const winnerId = challengerScore >= opponentScore ? battle.challengerId : battle.opponentId;
+    const loserId = winnerId === battle.challengerId ? battle.opponentId : battle.challengerId;
+
+    await Promise.all([
+      User.findOneAndUpdate({ userId: winnerId }, { $inc: { victoires: 1 } }),
+      User.findOneAndUpdate({ userId: loserId }, { $inc: { defaites: 1 } })
+    ]);
+
+    battle.status = 'terminee';
+    battle.result = {
+      winnerId,
+      challengerScore,
+      opponentScore,
+      challengerDeck: challenger.deck.map((c) => ({ nameFr: c.nameFr, imageUrl: c.imageUrl })),
+      opponentDeck: opponent.deck.map((c) => ({ nameFr: c.nameFr, imageUrl: c.imageUrl }))
+    };
+    await battle.save();
+
+    res.json({ battle });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-
-  const challengerScore = computeScore(challenger.deck);
-  const opponentScore = computeScore(opponent.deck);
-  const winnerId = challengerScore >= opponentScore ? battle.challengerId : battle.opponentId;
-  const loserId = winnerId === battle.challengerId ? battle.opponentId : battle.challengerId;
-
-  await Promise.all([
-    User.findOneAndUpdate({ userId: winnerId }, { $inc: { victoires: 1 } }),
-    User.findOneAndUpdate({ userId: loserId }, { $inc: { defaites: 1 } })
-  ]);
-
-  battle.status = 'terminee';
-  battle.result = {
-    winnerId,
-    challengerScore,
-    opponentScore,
-    challengerDeck: challenger.deck.map((c) => ({ nameFr: c.nameFr, imageUrl: c.imageUrl })),
-    opponentDeck: opponent.deck.map((c) => ({ nameFr: c.nameFr, imageUrl: c.imageUrl }))
-  };
-  await battle.save();
-
-  res.json({ battle });
 });
 
 module.exports = router;
