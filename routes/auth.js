@@ -3,6 +3,11 @@ const router = express.Router();
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
+// URL complète du site GitHub Pages (avec le sous-chemin /CardsCapture/),
+// utilisée pour renvoyer l'utilisateur au bon endroit après le login Discord.
+// Différent de FRONTEND_ORIGIN (server.js) qui doit rester sans chemin pour CORS.
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://xezy-b2.github.io/CardsCapture/';
+
 router.get('/login', (req, res) => {
   const params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
@@ -15,7 +20,7 @@ router.get('/login', (req, res) => {
 
 router.get('/callback', async (req, res) => {
   const { code } = req.query;
-  if (!code) return res.redirect('/?erreur=connexion_annulee');
+  if (!code) return res.redirect(`${FRONTEND_URL}?erreur=connexion_annulee`);
 
   try {
     const tokenRes = await fetch(`${DISCORD_API}/oauth2/token`, {
@@ -47,15 +52,15 @@ router.get('/callback', async (req, res) => {
         : `https://cdn.discordapp.com/embed/avatars/${Number(discordUser.discriminator || 0) % 5}.png`
     };
 
-    res.redirect('/');
+    res.redirect(FRONTEND_URL);
   } catch (err) {
     console.error('Erreur OAuth Discord :', err.message);
-    res.redirect('/?erreur=connexion_echouee');
+    res.redirect(`${FRONTEND_URL}?erreur=connexion_echouee`);
   }
 });
 
 router.get('/logout', (req, res) => {
-  req.session.destroy(() => res.redirect('/'));
+  req.session.destroy(() => res.redirect(FRONTEND_URL));
 });
 
 router.get('/me', (req, res) => {
