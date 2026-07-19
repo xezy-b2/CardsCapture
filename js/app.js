@@ -62,9 +62,12 @@ const el = {
   boosterCompletionMessage: document.getElementById('boosterCompletionMessage')
 };
 
+const API_BASE = 'https://cardscapture.onrender.com';
+
 async function api(path, options = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include', // envoie le cookie de session Discord au backend
     ...options
   });
   const data = await res.json().catch(() => ({}));
@@ -127,14 +130,14 @@ function renderAuthArea() {
       <span>${state.currentUser.username}</span>
     `;
     const logoutBtn = document.createElement('a');
-    logoutBtn.href = '/auth/logout';
+    logoutBtn.href = `${API_BASE}/auth/logout`;
     logoutBtn.className = 'btn-logout';
     logoutBtn.textContent = 'Déconnexion';
     el.authArea.appendChild(wrap);
     el.authArea.appendChild(logoutBtn);
   } else {
     const loginBtn = document.createElement('a');
-    loginBtn.href = '/auth/login';
+    loginBtn.href = `${API_BASE}/auth/login`;
     loginBtn.className = 'btn-discord';
     loginBtn.textContent = 'Se connecter avec Discord';
     el.authArea.appendChild(loginBtn);
