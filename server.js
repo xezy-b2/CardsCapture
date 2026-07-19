@@ -23,7 +23,7 @@ if (isProduction) app.set('trust proxy', 1);
 
 // TODO: remplace par l'URL exacte de ton site GitHub Pages
 // (ex: 'https://tonpseudo.github.io')
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://xezy-b2.github.io/CardsCapture/';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://tonpseudo.github.io';
 
 app.use(
   cors({
@@ -51,6 +51,13 @@ app.use(
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/js', express.static(path.join(__dirname, 'js')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+// Empêche le navigateur de mettre en cache les réponses de l'API/auth
+// (sinon /auth/me peut renvoyer un vieux 304 "user: null" même après connexion).
+app.use(['/auth', '/api'], (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 app.use('/auth', authRoutes);
 app.use('/api', collectionRoutes);
