@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const { requireAuth } = require('../middleware/requireAuth');
 const User = require('../src/models/User');
 const UserCard = require('../src/models/UserCard');
@@ -28,7 +29,12 @@ router.get('/owned-cards', requireAuth, async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const user = await User.findOne({ userId: req.session.user.id }).populate('deck').lean();
-    res.json({ deck: user?.deck || [] });
+    // Filet de sécurité : si le deck contient une référence invalide/corrompue
+    // (ex: un ancien id qui n'est pas un ObjectId Mongo), populate() la laisse
+    // telle quelle au lieu d'un objet carte -> on la retire pour ne pas la
+    // renvoyer au front (et éviter qu'elle ne reparte corrompre une sauvegarde).
+    const deck = (user?.deck || []).filter((c) => c && typeof c === 'object' && c._id);
+    res.json({ deck });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -47,6 +53,10 @@ router.post('/', requireAuth, async (req, res) => {
     const uniqueIds = new Set(cardIds);
     if (uniqueIds.size !== cardIds.length) {
       return res.status(400).json({ error: 'Le deck ne peut pas contenir la même carte deux fois.' });
+    }
+
+    if (!cardIds.every((id) => mongoose.Types.ObjectId.isValid(id))) {
+      return res.status(400).json({ error: "Une des cartes sélectionnées est invalide, réessaie de la choisir depuis la liste." });
     }
 
     const owned = await UserCard.find({ userId, cardId: { $in: cardIds }, quantity: { $gte: 1 } });
