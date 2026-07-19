@@ -576,12 +576,19 @@ async function loadDeckSection() {
   }
 
   const { deck } = await api('/api/deck');
-  state.deckDraft = [deck[0] || null, deck[1] || null, deck[2] || null];
+  state.deckDraft = [0, 1, 2].map((i) => {
+    const c = deck[i];
+    if (!c) return null;
+    // c vient d'un populate('deck') : c._id est l'ObjectId Mongo à utiliser,
+    // PAS c.cardId (qui est le champ "cardId" du modèle Card = l'id TCGdex,
+    // un tout autre identifiant qui portait malheureusement le même nom).
+    return { cardId: c._id, nameFr: c.nameFr, localId: c.localId, rarity: c.rarity, imageUrl: c.imageUrl };
+  });
   renderDeckSlots();
 
   el.deckSaveBtn.onclick = async () => {
     el.deckError.hidden = true;
-    const cardIds = state.deckDraft.filter(Boolean).map((c) => c.cardId || c._id || c);
+    const cardIds = state.deckDraft.filter(Boolean).map((c) => c.cardId);
     try {
       await api('/api/deck', { method: 'POST', body: JSON.stringify({ cardIds }) });
       await loadDeckSection();
