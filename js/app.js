@@ -80,31 +80,9 @@ function trainerName(id) {
   return state.trainersById.get(id) || id;
 }
 
-const AUTH_ERROR_MESSAGES = {
-  connexion_annulee: 'Connexion annulée.',
-  connexion_echouee: 'La connexion avec Discord a échoué, réessaie.',
-  discord_rate_limit: 'Discord limite temporairement les connexions (trop de tentatives). Réessaie dans une minute.'
-};
-
-function showAuthErrorIfAny() {
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('erreur');
-  if (!code) return;
-
-  const banner = document.createElement('div');
-  banner.className = 'auth-error-banner';
-  banner.textContent = AUTH_ERROR_MESSAGES[code] || 'Une erreur est survenue.';
-  document.body.prepend(banner);
-
-  // Nettoie l'URL pour ne pas garder ?erreur= si on recharge la page
-  window.history.replaceState({}, '', window.location.pathname);
-}
-
 /* ===================== INIT / AUTH ===================== */
 
 async function init() {
-  showAuthErrorIfAny();
-
   const { user } = await api('/auth/me');
   state.currentUser = user;
   renderAuthArea();
