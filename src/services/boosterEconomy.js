@@ -41,7 +41,7 @@ async function claimStarterBooster(userId, username) {
 
   await User.findOneAndUpdate(
     { userId },
-    { $setOnInsert: { userId, username }, $set: { hasStarted: true, username } },
+    { $setOnInsert: { userId }, $set: { hasStarted: true, username } },
     { upsert: true }
   );
   await addCardsToUser(userId, pulled);
