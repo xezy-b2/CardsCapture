@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokéDex — Ton espace dresseur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="shell">
+    <header class="shell__bar">
+      <div class="lens" id="lens">
+        <div class="lens__glow"></div>
+        <img id="lensImage" class="lens__image" alt="" />
+      </div>
+      <div class="shell__title">
+        <h1>PokéDex</h1>
+        <p class="shell__subtitle">Ta collection, capturée sur Discord</p>
+      </div>
+      <div id="authArea" class="auth-area"></div>
+    </header>
+
+    <nav class="main-tabs" id="mainTabs">
+      <button class="main-tab is-active" data-section="collection">Collection</button>
+      <button class="main-tab" data-section="boosters">Boosters</button>
+      <button class="main-tab" data-section="trades">Échanges</button>
+      <button class="main-tab" data-section="deck">Deck</button>
+      <button class="main-tab" data-section="battle">Combats</button>
+    </nav>
+
+    <!-- ===================== COLLECTION ===================== -->
+    <section id="section-collection" class="app-section">
+      <section class="search-bar">
+        <label for="discordIdInput" class="search-bar__label">Voir la collection d'un dresseur</label>
+        <div class="search-bar__row">
+          <input id="discordIdInput" type="text" inputmode="numeric" placeholder="ID Discord" autocomplete="off" />
+          <button id="loadBtn" class="btn-primary">Afficher</button>
+        </div>
+        <p class="search-bar__hint">Connecté(e), ta collection s'affiche automatiquement ci-dessous.</p>
+      </section>
+
+      <section id="profileCard" class="profile-card" hidden>
+        <div class="profile-card__stat"><span class="profile-card__value" id="statCaptures">0</span><span class="profile-card__label">Captures</span></div>
+        <div class="profile-card__stat"><span class="profile-card__value" id="statDistinct">0</span><span class="profile-card__label">Cartes uniques</span></div>
+        <div class="profile-card__stat"><span class="profile-card__value" id="statWins">0</span><span class="profile-card__label">Victoires</span></div>
+        <div class="profile-card__stat"><span class="profile-card__value" id="statLosses">0</span><span class="profile-card__label">Défaites</span></div>
+        <div class="profile-card__stat"><span class="profile-card__value" id="statWinrate">—</span><span class="profile-card__label">Taux de victoire</span></div>
+      </section>
+
+      <section class="collection-filters">
+        <input id="collectionSearch" type="text" placeholder="Rechercher un Pokémon (ou une carte Dresseur/Énergie)..." />
+        <select id="ownershipFilter">
+          <option value="all">Toutes les cartes</option>
+          <option value="owned">Capturées seulement</option>
+          <option value="missing">Manquantes seulement</option>
+        </select>
+        <select id="rarityFilter">
+          <option value="all">Toutes les raretés</option>
+          <option value="Commune">Commune</option>
+          <option value="Rare">Rare</option>
+          <option value="Légendaire">Légendaire</option>
+        </select>
+      </section>
+
+      <nav id="genTabs" class="gen-tabs" hidden aria-label="Séries"></nav>
+      <main id="screen" class="screen">
+        <p class="screen__empty">Connecte-toi avec Discord, ou entre un ID pour voir une collection.</p>
+      </main>
+    </section>
+
+    <!-- ===================== BOOSTERS ===================== -->
+    <section id="section-boosters" class="app-section" hidden>
+      <div class="panel">
+        <h2 class="panel__title">Ton solde</h2>
+        <p class="booster-balance"><span id="boosterCoins">0</span> coins</p>
+        <div id="boosterStartBlock" hidden>
+          <p class="panel__hint">Réclame ton tout premier booster pour commencer à jouer !</p>
+          <button id="boosterStartBtn" class="btn-primary">🎁 Réclamer mon booster de départ</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Ouvrir un booster</h2>
+        <p class="panel__hint" id="boosterCostHint">Coût : — coins</p>
+        <div class="form-row">
+          <label>Extension</label>
+          <select id="boosterSetSelect">
+            <option value="random">🎲 Extension aléatoire (surprise !)</option>
+          </select>
+        </div>
+        <button id="boosterOpenBtn" class="btn-primary">Ouvrir le booster</button>
+        <p id="boosterFormError" class="form-error" hidden></p>
+      </div>
+
+      <div id="boosterResultPanel" class="panel" hidden>
+        <h2 class="panel__title">Contenu du booster</h2>
+        <div id="boosterResultCards" class="booster-result-grid"></div>
+        <p id="boosterCompletionMessage" class="booster-completion" hidden>🏆 Extension complétée à 100% ! Bonus de coins débloqué.</p>
+      </div>
+    </section>
+
+    <!-- ===================== ÉCHANGES ===================== -->
+    <section id="section-trades" class="app-section" hidden>
+      <div class="panel">
+        <h2 class="panel__title">Proposer un échange</h2>
+        <p class="panel__hint">Choisis une de tes cartes en double, et ce que tu veux en retour.</p>
+        <div class="form-row">
+          <label>Dresseur</label>
+          <select id="tradeTargetSelect"></select>
+        </div>
+        <div class="form-row">
+          <label>Ta carte (double)</label>
+          <select id="tradeOfferedSelect"></select>
+        </div>
+        <div class="form-row">
+          <label>Carte demandée</label>
+          <input id="tradeRequestedSearch" type="text" placeholder="Rechercher une carte..." />
+          <select id="tradeRequestedSelect"></select>
+        </div>
+        <button id="tradeSubmitBtn" class="btn-primary">Proposer l'échange</button>
+        <p id="tradeFormError" class="form-error" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Échanges reçus</h2>
+        <div id="tradesIncoming" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Échanges envoyés</h2>
+        <div id="tradesOutgoing" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ===================== DECK ===================== -->
+    <section id="section-deck" class="app-section" hidden>
+      <div class="panel">
+        <h2 class="panel__title">Ton deck de combat (3 cartes)</h2>
+        <p class="panel__hint">Clique sur un emplacement pour choisir une carte de ta collection.</p>
+        <div class="deck-slots" id="deckSlots">
+          <div class="deck-slot" data-slot="0"><span class="deck-slot__empty">+ Ajouter</span></div>
+          <div class="deck-slot" data-slot="1"><span class="deck-slot__empty">+ Ajouter</span></div>
+          <div class="deck-slot" data-slot="2"><span class="deck-slot__empty">+ Ajouter</span></div>
+        </div>
+        <button id="deckSaveBtn" class="btn-primary">Enregistrer le deck</button>
+        <p id="deckError" class="form-error" hidden></p>
+      </div>
+
+      <div id="deckPicker" class="panel" hidden>
+        <h2 class="panel__title">Choisis une carte</h2>
+        <input id="deckPickerSearch" type="text" placeholder="Rechercher dans ta collection..." />
+        <div id="deckPickerList" class="card-grid card-grid--small"></div>
+        <button id="deckPickerClose" class="btn-secondary">Fermer</button>
+      </div>
+    </section>
+
+    <!-- ===================== COMBATS ===================== -->
+    <section id="section-battle" class="app-section" hidden>
+      <div class="panel">
+        <h2 class="panel__title">Défier un dresseur</h2>
+        <div class="form-row">
+          <label>Adversaire</label>
+          <select id="battleTargetSelect"></select>
+        </div>
+        <button id="battleChallengeBtn" class="btn-primary">Lancer le défi</button>
+        <p id="battleFormError" class="form-error" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Défis reçus</h2>
+        <div id="battleIncoming" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Défis envoyés</h2>
+        <div id="battleOutgoing" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Historique des combats</h2>
+        <div id="battleHistory" class="list"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

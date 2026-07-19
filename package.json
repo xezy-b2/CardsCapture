@@ -1,0 +1,23 @@
+{
+  "name": "pokebot-site",
+  "version": "1.0.0",
+  "description": "Site web PokeBot (collection, boosters, échanges, deck, combats) — le bot Discord est hébergé séparément",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "import-cards": "node scripts/importCards.js",
+    "check-cards": "node scripts/checkCards.js",
+    "clean-cards": "node scripts/cleanCards.js",
+    "reset-cards": "node scripts/resetCards.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "mongoose": "^8.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: pokebot-site
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CLIENT_ID
+        sync: false
+      - key: DISCORD_CLIENT_SECRET
+        sync: false
+      - key: DISCORD_REDIRECT_URI
+        sync: false
+      - key: BOOSTER_COST
+        value: "100"
+      - key: BOOSTER_SIZE
+        value: "5"
+      - key: STARTER_BOOSTER_SIZE
+        value: "5"
+      - key: STARTER_SET_ID
+        value: base1
+      - key: SET_COMPLETION_BONUS
+        value: "200"

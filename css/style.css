@@ -1,0 +1,869 @@
+:root {
+  --red-shell: #c7443a;
+  --red-shell-dark: #8f2e27;
+  --red-shell-darker: #6e211b;
+  --cream-screen: #f1ecd9;
+  --cream-screen-deep: #e6dfc6;
+  --ink: #2a2420;
+  --ink-soft: #6b6055;
+  --ink-faint: #9a8f80;
+
+  --rarity-commune: #4f9d69;
+  --rarity-rare: #7c5b95;
+  --rarity-legendaire: #c9982f;
+
+  --lens-glass: #b8d8ce;
+  --lens-glass-dark: #6f9c8d;
+
+  --font-display: 'Fredoka', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #2f2a26;
+  background-image:
+    radial-gradient(circle at 15% 10%, rgba(255,255,255,0.04), transparent 40%),
+    radial-gradient(circle at 85% 90%, rgba(255,255,255,0.03), transparent 40%);
+  font-family: var(--font-body);
+  color: var(--ink);
+  padding: 32px 16px 64px;
+}
+
+.shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.35);
+  background: var(--cream-screen);
+}
+
+/* ---------- Barre du haut (coquille rouge) ---------- */
+
+.shell__bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 28px;
+  background: linear-gradient(180deg, var(--red-shell) 0%, var(--red-shell-dark) 100%);
+  border-bottom: 6px solid var(--red-shell-darker);
+}
+
+.lens {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #eaf5f1, var(--lens-glass) 55%, var(--lens-glass-dark) 100%);
+  border: 4px solid #fff;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.35), inset 0 0 0 2px rgba(0,0,0,0.08);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.lens__glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.55), transparent 70%);
+  animation: lens-pulse 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens__glow { animation: none; }
+}
+
+@keyframes lens-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 0.75; transform: scale(1.05); }
+}
+
+.lens__image {
+  position: relative;
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
+  transition: opacity 0.25s ease;
+  opacity: 0;
+}
+
+.lens__image[src] { opacity: 1; }
+
+.shell__title h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+
+.shell__subtitle {
+  margin: 2px 0 0;
+  color: rgba(255,255,255,0.85);
+  font-size: 13.5px;
+}
+
+.shell__lights {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.light {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.3);
+}
+.light--yellow { background: #e8c144; }
+.light--green { background: #6fbf7a; }
+
+/* ---------- Barre de recherche ---------- */
+
+.search-bar {
+  padding: 22px 28px 18px;
+  background: var(--cream-screen-deep);
+  border-bottom: 2px solid rgba(0,0,0,0.06);
+}
+
+.search-bar__label {
+  display: block;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.search-bar__row {
+  display: flex;
+  gap: 10px;
+}
+
+#discordIdInput {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(0,0,0,0.12);
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+#discordIdInput:focus-visible,
+.btn-primary:focus-visible,
+.gen-tab:focus-visible,
+.card-tile:focus-visible {
+  outline: 3px solid var(--lens-glass-dark);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--red-shell);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-primary:hover { background: var(--red-shell-dark); }
+.btn-primary:active { transform: translateY(1px); }
+
+.search-bar__hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* ---------- Profil ---------- */
+
+.profile-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  background: #fff;
+  border-bottom: 2px solid rgba(0,0,0,0.06);
+}
+
+.profile-card__stat {
+  flex: 1;
+  min-width: 110px;
+  padding: 18px 16px;
+  text-align: center;
+  border-right: 1px solid rgba(0,0,0,0.06);
+}
+.profile-card__stat:last-child { border-right: none; }
+
+.profile-card__value {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 24px;
+  color: var(--red-shell-dark);
+}
+
+.profile-card__label {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+/* ---------- Onglets de génération ---------- */
+
+.gen-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 28px;
+  background: var(--cream-screen);
+}
+
+.gen-tab {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,0.12);
+  background: #fff;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.gen-tab:hover { border-color: var(--red-shell); color: var(--red-shell-dark); }
+
+.gen-tab.is-active {
+  background: var(--red-shell);
+  border-color: var(--red-shell);
+  color: #fff;
+}
+
+/* ---------- Écran (grille de cartes) ---------- */
+
+.screen {
+  padding: 8px 28px 32px;
+  min-height: 240px;
+}
+
+.screen__empty,
+.screen__loading {
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 14px;
+  padding: 60px 20px;
+}
+
+.gen-heading {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  margin: 24px 0 12px;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.gen-heading__count {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-faint);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 12px;
+}
+
+.card-tile {
+  position: relative;
+  background: #fff;
+  border-radius: var(--radius-md);
+  border-left: 5px solid var(--rarity-commune);
+  padding: 10px 10px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.card-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+
+.card-tile[data-rarity="Rare"] { border-left-color: var(--rarity-rare); }
+.card-tile[data-rarity="Légendaire"] { border-left-color: var(--rarity-legendaire); }
+
+.card-tile__dex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-align: left;
+}
+
+.card-tile__image {
+  width: 100%;
+  height: 76px;
+  object-fit: contain;
+  margin: 2px 0 4px;
+}
+
+.card-tile__name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.card-tile__quantity {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--red-shell);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.card-tile.is-locked {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.card-tile.is-locked .card-tile__image { filter: brightness(0) opacity(0.25); }
+
+.card-tile.is-locked .card-tile__name::before {
+  content: "??? ";
+}
+
+@media (max-width: 560px) {
+  .shell__bar { padding: 16px 18px; gap: 14px; }
+  .shell__title h1 { font-size: 22px; }
+  .search-bar, .gen-tabs, .screen { padding-left: 16px; padding-right: 16px; }
+  .profile-card__stat { min-width: 33%; }
+}
+
+/* ---------- Boosters ---------- */
+
+.booster-balance {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--red-shell-dark);
+  margin: 4px 0 14px;
+}
+
+#boosterCostHint {
+  font-family: var(--font-mono);
+}
+
+.booster-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.booster-result-card {
+  background: var(--cream-screen);
+  border-radius: var(--radius-md);
+  border-left: 5px solid var(--rarity-commune);
+  padding: 10px;
+  text-align: center;
+}
+
+.booster-result-card[data-rarity="Rare"] { border-left-color: var(--rarity-rare); }
+.booster-result-card[data-rarity="Légendaire"] { border-left-color: var(--rarity-legendaire); }
+
+.booster-result-card img {
+  width: 100%;
+  height: 76px;
+  object-fit: contain;
+  margin-bottom: 6px;
+}
+
+.booster-result-card__name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.booster-result-card__rarity {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.booster-completion {
+  background: #fff4d6;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-weight: 600;
+  color: #8a6d1a;
+  margin: 0;
+}
+
+/* ---------- Filtres collection ---------- */
+
+.collection-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 28px 0;
+  background: var(--cream-screen-deep);
+}
+
+.collection-filters input {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(0,0,0,0.12);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.collection-filters select {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(0,0,0,0.12);
+  background: #fff;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.card-tile__image--none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76px;
+  font-size: 26px;
+  background: rgba(0,0,0,0.05);
+  border-radius: var(--radius-sm);
+  margin: 2px 0 4px;
+}
+
+.card-detail__image--none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  font-size: 48px;
+  background: rgba(0,0,0,0.05);
+  border-radius: var(--radius-sm);
+  margin: 4px auto 8px;
+}
+
+/* ---------- Auth ---------- */
+
+.auth-area {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-area__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.auth-area__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+}
+
+.btn-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #fff;
+  color: var(--red-shell-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-logout {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255,255,255,0.5);
+  background: transparent;
+  color: #fff;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+/* ---------- Navigation principale ---------- */
+
+.main-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 14px 28px 0;
+  background: var(--cream-screen-deep);
+}
+
+.main-tab {
+  padding: 10px 18px;
+  border: none;
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.main-tab.is-active {
+  color: var(--red-shell-dark);
+  border-bottom-color: var(--red-shell);
+}
+
+.app-section { background: var(--cream-screen); }
+
+/* ---------- Panels (échanges / deck / combats) ---------- */
+
+.panel {
+  margin: 20px 28px;
+  padding: 20px;
+  background: #fff;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.panel__title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.panel__hint {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--ink-faint);
+}
+
+.form-row {
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-row label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.form-row select,
+.form-row input,
+#deckPickerSearch,
+#tradeRequestedSearch {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid rgba(0,0,0,0.12);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.btn-secondary {
+  margin-top: 12px;
+  padding: 10px 18px;
+  border: 2px solid rgba(0,0,0,0.12);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.form-error {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: #fbe1df;
+  color: #a33;
+  font-size: 13px;
+}
+
+/* ---------- Listes (échanges / combats) ---------- */
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+
+.list__empty { color: var(--ink-faint); font-size: 13.5px; padding: 8px 0; }
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-screen);
+  flex-wrap: wrap;
+}
+
+.list-item__thumb { width: 40px; height: 40px; object-fit: contain; }
+
+.list-item__text { flex: 1; font-size: 13.5px; min-width: 180px; }
+
+.list-item__actions { display: flex; gap: 8px; }
+
+.btn-accept, .btn-decline, .btn-cancel {
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.btn-accept { background: var(--rarity-commune); color: #fff; }
+.btn-decline { background: #c0392b; color: #fff; }
+.btn-cancel { background: #ddd; color: var(--ink); }
+
+/* ---------- Deck ---------- */
+
+.deck-slots {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.deck-slot {
+  width: 120px;
+  height: 150px;
+  border: 2px dashed rgba(0,0,0,0.18);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-align: center;
+  padding: 8px;
+  position: relative;
+}
+
+.deck-slot.is-filled { border-style: solid; border-color: var(--red-shell); }
+
+.deck-slot__empty { color: var(--ink-faint); font-size: 13px; font-weight: 600; }
+
+.deck-slot img { width: 72px; height: 72px; object-fit: contain; }
+
+.deck-slot__name { font-size: 12px; font-weight: 600; margin-top: 4px; }
+
+.card-grid--small .card-tile { cursor: pointer; }
+
+#deckPicker { max-height: 480px; overflow-y: auto; }
+#deckPickerSearch { width: 100%; margin-bottom: 12px; }
+
+/* ---------- Fiche détaillée d'une carte ---------- */
+
+.card-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 16, 14, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.card-detail-overlay[hidden] {
+  display: none;
+}
+
+.card-detail {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--cream-screen);
+  border-radius: var(--radius-lg);
+  border: 4px solid #fff;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  padding: 24px 20px 20px;
+}
+
+.card-detail__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.08);
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.card-detail__body { text-align: center; }
+
+.card-detail__dex {
+  font-family: var(--font-mono);
+  color: var(--ink-faint);
+  font-size: 13px;
+  text-align: left;
+}
+
+.card-detail__image {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  margin: 4px auto 8px;
+  display: block;
+}
+
+.card-detail__image--locked { filter: brightness(0) opacity(0.25); }
+
+.card-detail__unknown {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin: 6px 0 14px;
+}
+
+.card-detail__name {
+  font-family: var(--font-display);
+  font-size: 21px;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+
+.card-detail__badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.rarity-badge, .type-badge, .quantity-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.rarity-badge[data-rarity="Commune"] { background: var(--rarity-commune); }
+.rarity-badge[data-rarity="Rare"] { background: var(--rarity-rare); }
+.rarity-badge[data-rarity="Légendaire"] { background: var(--rarity-legendaire); }
+
+.type-badge { background: var(--ink-soft); }
+.quantity-badge { background: var(--red-shell); }
+
+.card-detail__hp {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+
+.card-detail__attacks {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.attack-row {
+  background: #fff;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.attack-row__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.attack-row__name {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.attack-row__damage {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--red-shell-dark);
+}
+
+.attack-row__effect {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.card-detail__illustrator {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0;
+}
