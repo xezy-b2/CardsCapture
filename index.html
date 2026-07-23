@@ -186,6 +186,35 @@
     </section>
   </div>
 
+  <!-- ===================== OVERLAY OUVERTURE DE BOOSTER ===================== -->
+  <div id="boosterOpenOverlay" class="booster-open-overlay" hidden>
+    <div class="booster-open-overlay__backdrop"></div>
+
+    <div class="booster-stage" id="boosterStage">
+      <button type="button" class="booster-pack" id="boosterPack" aria-label="Ouvrir le booster">
+        <span class="booster-pack__shine"></span>
+        <span class="booster-pack__seam"></span>
+        <span class="booster-pack__top">
+          <span class="booster-pack__logo">PokéDex</span>
+        </span>
+        <span class="booster-pack__bottom">
+          <span class="booster-pack__label" id="boosterPackLabel">Booster</span>
+        </span>
+        <span class="booster-pack__flash"></span>
+      </button>
+      <p class="booster-stage__hint" id="boosterStageHint">Touche le booster pour l'ouvrir</p>
+    </div>
+
+    <div class="booster-reveal" id="boosterReveal" hidden>
+      <p class="booster-reveal__counter" id="boosterRevealCounter"></p>
+      <div class="booster-reveal__stack" id="boosterRevealStack"></div>
+      <div class="booster-reveal__actions">
+        <button id="boosterSkipBtn" class="btn-secondary" type="button" hidden>Tout révéler</button>
+        <button id="boosterContinueBtn" class="btn-primary" type="button" hidden>Continuer</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/app.js"></script>
 </body>
 </html>
