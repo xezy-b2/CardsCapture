@@ -507,7 +507,7 @@ body.no-scroll { overflow: hidden; }
   right: 0;
   height: 50%;
   background-color: var(--red-shell-dark);
-  background-image: url('../img/xezymon.png');
+  background-image: url('https://raw.githubusercontent.com/xezy-b2/CardsCapture/refs/heads/main/img/xezymon.png');
   background-size: 100% 200%;
   background-repeat: no-repeat;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
