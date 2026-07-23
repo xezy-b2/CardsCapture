@@ -450,6 +450,21 @@ const boosterAnim = {
   finalCompletionBonusApplied: false
 };
 
+// Petite aide pour afficher/masquer un élément de façon fiable :
+// on pose à la fois l'attribut `hidden` ET le style inline, pour ne
+// jamais dépendre d'une seule règle CSS qui pourrait être en conflit.
+function setVisible(element, visible, displayValue = 'flex') {
+  element.hidden = !visible;
+  element.style.display = visible ? displayValue : 'none';
+}
+
+// Sécurité : on force la fermeture de l'overlay au chargement du script,
+// indépendamment de ce que dit le CSS (au cas où un ancien fichier serait
+// encore en cache côté navigateur).
+setVisible(el.boosterOpenOverlay, false);
+setVisible(el.boosterStage, false);
+setVisible(el.boosterReveal, false);
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -463,9 +478,9 @@ function playBoosterOpening(cards, completionBonusApplied) {
   boosterAnim.skip = false;
 
   document.body.classList.add('no-scroll');
-  el.boosterOpenOverlay.hidden = false;
-  el.boosterStage.hidden = false;
-  el.boosterReveal.hidden = true;
+  setVisible(el.boosterOpenOverlay, true, 'flex');
+  setVisible(el.boosterStage, true, 'flex');
+  setVisible(el.boosterReveal, false);
   el.boosterRevealStack.innerHTML = '';
   el.boosterRevealCounter.textContent = '';
   el.boosterSkipBtn.hidden = true;
@@ -482,8 +497,8 @@ function playBoosterOpening(cards, completionBonusApplied) {
 
     await sleep(650);
 
-    el.boosterStage.hidden = true;
-    el.boosterReveal.hidden = false;
+    setVisible(el.boosterStage, false);
+    setVisible(el.boosterReveal, true, 'flex');
     el.boosterSkipBtn.hidden = false;
     el.boosterSkipBtn.onclick = () => {
       boosterAnim.skip = true;
@@ -564,7 +579,7 @@ function spawnSparkles(container) {
 }
 
 el.boosterContinueBtn.onclick = () => {
-  el.boosterOpenOverlay.hidden = true;
+  setVisible(el.boosterOpenOverlay, false);
   document.body.classList.remove('no-scroll');
   renderBoosterResult(boosterAnim.finalCards, boosterAnim.finalCompletionBonusApplied);
 };
