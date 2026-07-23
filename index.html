@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/booster-stage.css" />
 </head>
 <body>
   <div class="shell">
@@ -93,6 +94,16 @@
         </div>
         <button id="boosterOpenBtn" class="btn-primary">Ouvrir le booster</button>
         <p id="boosterFormError" class="form-error" hidden></p>
+      </div>
+
+      <div id="boosterStage" class="booster-stage" hidden>
+        <div class="booster-stage__burst" id="stageBurst"></div>
+        <div class="booster-stage__half booster-stage__half--top" id="stageHalfTop"></div>
+        <div class="booster-stage__half booster-stage__half--bottom" id="stageHalfBottom"></div>
+        <div class="booster-stage__pack" id="stagePack">
+          <span class="booster-stage__pack-label">CARDSCAPTURE</span>
+        </div>
+        <div id="stageCardsRoot" class="booster-stage__cards"></div>
       </div>
 
       <div id="boosterResultPanel" class="panel" hidden>
