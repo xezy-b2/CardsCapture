@@ -59,7 +59,17 @@ const el = {
   boosterFormError: document.getElementById('boosterFormError'),
   boosterResultPanel: document.getElementById('boosterResultPanel'),
   boosterResultCards: document.getElementById('boosterResultCards'),
-  boosterCompletionMessage: document.getElementById('boosterCompletionMessage')
+  boosterCompletionMessage: document.getElementById('boosterCompletionMessage'),
+
+  boosterOpenOverlay: document.getElementById('boosterOpenOverlay'),
+  boosterStage: document.getElementById('boosterStage'),
+  boosterPack: document.getElementById('boosterPack'),
+  boosterStageHint: document.getElementById('boosterStageHint'),
+  boosterReveal: document.getElementById('boosterReveal'),
+  boosterRevealStack: document.getElementById('boosterRevealStack'),
+  boosterRevealCounter: document.getElementById('boosterRevealCounter'),
+  boosterSkipBtn: document.getElementById('boosterSkipBtn'),
+  boosterContinueBtn: document.getElementById('boosterContinueBtn')
 };
 
 async function api(path, options = {}) {
@@ -408,7 +418,7 @@ async function loadBoostersSection() {
     el.boosterFormError.hidden = true;
     try {
       const { cards } = await api('/api/booster/start', { method: 'POST' });
-      renderBoosterResult(cards, false);
+      playBoosterOpening(cards, false);
       await loadBoostersSection();
     } catch (err) {
       el.boosterFormError.textContent = err.message;
@@ -423,14 +433,141 @@ async function loadBoostersSection() {
         method: 'POST',
         body: JSON.stringify({ setId: el.boosterSetSelect.value })
       });
-      renderBoosterResult(cards, completionBonusApplied);
       el.boosterCoins.textContent = coinsRemaining;
+      playBoosterOpening(cards, completionBonusApplied);
     } catch (err) {
       el.boosterFormError.textContent = err.message;
       el.boosterFormError.hidden = false;
     }
   };
 }
+
+/* ---------- Animation d'ouverture de booster ---------- */
+
+const boosterAnim = {
+  skip: false,
+  finalCards: [],
+  finalCompletionBonusApplied: false
+};
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Lance la séquence complète : paquet fermé -> déchirure au clic -> reveal
+// des cartes une par une (le "hit" rare/légendaire est révélé en dernier,
+// pour le suspense), puis bouton "Continuer" qui affiche le récap habituel.
+function playBoosterOpening(cards, completionBonusApplied) {
+  boosterAnim.finalCards = cards;
+  boosterAnim.finalCompletionBonusApplied = completionBonusApplied;
+  boosterAnim.skip = false;
+
+  document.body.classList.add('no-scroll');
+  el.boosterOpenOverlay.hidden = false;
+  el.boosterStage.hidden = false;
+  el.boosterReveal.hidden = true;
+  el.boosterRevealStack.innerHTML = '';
+  el.boosterRevealCounter.textContent = '';
+  el.boosterSkipBtn.hidden = true;
+  el.boosterContinueBtn.hidden = true;
+  el.boosterPack.classList.remove('is-tearing');
+  el.boosterStageHint.textContent = "Touche le booster pour l'ouvrir";
+
+  const revealOrder = [...cards].reverse();
+
+  const onPackClick = async () => {
+    el.boosterPack.removeEventListener('click', onPackClick);
+    el.boosterStageHint.textContent = '';
+    el.boosterPack.classList.add('is-tearing');
+
+    await sleep(650);
+
+    el.boosterStage.hidden = true;
+    el.boosterReveal.hidden = false;
+    el.boosterSkipBtn.hidden = false;
+    el.boosterSkipBtn.onclick = () => {
+      boosterAnim.skip = true;
+    };
+
+    await revealBoosterCards(revealOrder);
+
+    el.boosterSkipBtn.hidden = true;
+    el.boosterContinueBtn.hidden = false;
+  };
+
+  el.boosterPack.addEventListener('click', onPackClick);
+}
+
+async function revealBoosterCards(revealOrder) {
+  const total = revealOrder.length;
+
+  for (let i = 0; i < total; i++) {
+    const card = revealOrder[i];
+    el.boosterRevealCounter.textContent = `Carte ${i + 1} / ${total}`;
+
+    const cardEl = document.createElement('div');
+    cardEl.className = 'reveal-card';
+    cardEl.innerHTML = `
+      <div class="reveal-card__inner">
+        <div class="reveal-card__face reveal-card__face--back">
+          <div class="reveal-card__back-logo">PokéDex</div>
+        </div>
+        <div class="reveal-card__face reveal-card__face--front" data-rarity="${card.rarity}">
+          ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.nameFr}" />` : '<div class="card-tile__image--none">🃏</div>'}
+          <div class="reveal-card__name">${card.nameFr}</div>
+          <div class="reveal-card__rarity">${card.officialRarity}</div>
+        </div>
+      </div>
+    `;
+    el.boosterRevealStack.innerHTML = '';
+    el.boosterRevealStack.appendChild(cardEl);
+
+    await sleep(boosterAnim.skip ? 0 : 100);
+    cardEl.classList.add('is-in');
+    await sleep(boosterAnim.skip ? 0 : 380);
+
+    cardEl.classList.add('is-flipped');
+
+    const frontFace = cardEl.querySelector('.reveal-card__face--front');
+    if (card.rarity === 'Légendaire') {
+      cardEl.classList.add('reveal-card--legendary');
+      el.boosterOpenOverlay.classList.add('is-shaking');
+      spawnSparkles(frontFace);
+      setTimeout(() => el.boosterOpenOverlay.classList.remove('is-shaking'), 500);
+    } else if (card.rarity === 'Rare') {
+      cardEl.classList.add('reveal-card--glow');
+    }
+
+    await sleep(boosterAnim.skip ? 60 : 950);
+
+    if (i < total - 1) {
+      cardEl.classList.add('is-out');
+      await sleep(boosterAnim.skip ? 0 : 320);
+    }
+  }
+}
+
+function spawnSparkles(container) {
+  for (let i = 0; i < 14; i++) {
+    const spark = document.createElement('span');
+    spark.className = 'reveal-sparkle';
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 60 + Math.random() * 70;
+    spark.style.setProperty('--tx', `${(Math.cos(angle) * distance).toFixed(0)}px`);
+    spark.style.setProperty('--ty', `${(Math.sin(angle) * distance).toFixed(0)}px`);
+    spark.style.left = '50%';
+    spark.style.top = '50%';
+    spark.style.animationDelay = `${Math.random() * 0.15}s`;
+    container.appendChild(spark);
+    spark.addEventListener('animationend', () => spark.remove());
+  }
+}
+
+el.boosterContinueBtn.onclick = () => {
+  el.boosterOpenOverlay.hidden = true;
+  document.body.classList.remove('no-scroll');
+  renderBoosterResult(boosterAnim.finalCards, boosterAnim.finalCompletionBonusApplied);
+};
 
 async function populateBoosterSetSelect() {
   const { series } = await api('/api/booster/sets');
