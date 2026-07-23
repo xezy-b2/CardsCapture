@@ -506,7 +506,10 @@ body.no-scroll { overflow: hidden; }
   left: 0;
   right: 0;
   height: 50%;
-  background: linear-gradient(160deg, var(--red-shell) 0%, var(--red-shell-dark) 55%, var(--red-shell-darker) 100%);
+  background-color: var(--red-shell-dark);
+  background-image: url('../img/xezymon.png');
+  background-size: 100% 200%;
+  background-repeat: no-repeat;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
@@ -519,12 +522,14 @@ body.no-scroll { overflow: hidden; }
   top: 0;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   clip-path: polygon(0 0, 100% 0, 100% 92%, 85% 100%, 65% 90%, 50% 100%, 35% 90%, 15% 100%, 0 92%);
+  background-position: top;
 }
 
 .booster-pack__bottom {
   bottom: 0;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
   clip-path: polygon(0 8%, 15% 0, 35% 10%, 50% 0, 65% 10%, 85% 0, 100% 8%, 100% 100%, 0 100%);
+  background-position: bottom;
 }
 
 .booster-pack__logo {
