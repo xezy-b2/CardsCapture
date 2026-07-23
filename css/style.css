@@ -437,7 +437,7 @@ body {
 
 body.no-scroll { overflow: hidden; }
 
-.booster-open-overlay {
+.booster-open-overlay:not([hidden]) {
   position: fixed;
   inset: 0;
   z-index: 500;
@@ -445,6 +445,12 @@ body.no-scroll { overflow: hidden; }
   align-items: center;
   justify-content: center;
   flex-direction: column;
+}
+
+.booster-open-overlay[hidden],
+.booster-stage[hidden],
+.booster-reveal[hidden] {
+  display: none !important;
 }
 
 .booster-open-overlay__backdrop {
