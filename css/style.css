@@ -707,7 +707,10 @@ body.no-scroll { overflow: hidden; }
 }
 
 .reveal-card__face--back {
-  background: linear-gradient(155deg, var(--red-shell) 0%, var(--red-shell-dark) 100%);
+  background-color: var(--red-shell-dark);
+  background-image: url('https://raw.githubusercontent.com/xezy-b2/CardsCapture/refs/heads/main/img/xezymon.png');
+  background-size: cover;
+  background-position: center;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
   border: 3px solid rgba(246, 233, 201, 0.5);
 }
@@ -717,6 +720,10 @@ body.no-scroll { overflow: hidden; }
   font-size: 18px;
   color: #f6e9c9;
   letter-spacing: 0.5px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 
 .reveal-card__face--front {
