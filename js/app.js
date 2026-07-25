@@ -69,7 +69,20 @@ const el = {
   boosterRevealStack: document.getElementById('boosterRevealStack'),
   boosterRevealCounter: document.getElementById('boosterRevealCounter'),
   boosterSkipBtn: document.getElementById('boosterSkipBtn'),
-  boosterContinueBtn: document.getElementById('boosterContinueBtn')
+  boosterContinueBtn: document.getElementById('boosterContinueBtn'),
+
+  profileAvatar: document.getElementById('profileAvatar'),
+  profileUsername: document.getElementById('profileUsername'),
+  profileCoins: document.getElementById('profileCoins'),
+  dailyClaimHint: document.getElementById('dailyClaimHint'),
+  dailyClaimBtn: document.getElementById('dailyClaimBtn'),
+  dailyClaimAmount: document.getElementById('dailyClaimAmount'),
+  dailyClaimError: document.getElementById('dailyClaimError'),
+  profileStatCaptures: document.getElementById('profileStatCaptures'),
+  profileStatWins: document.getElementById('profileStatWins'),
+  profileStatLosses: document.getElementById('profileStatLosses'),
+  profileStatWinrate: document.getElementById('profileStatWinrate'),
+  boosterHistoryList: document.getElementById('boosterHistoryList')
 };
 
 async function api(path, options = {}) {
@@ -165,6 +178,7 @@ function setupNav() {
       if (btn.dataset.section === 'trades') loadTradesSection();
       if (btn.dataset.section === 'deck') loadDeckSection();
       if (btn.dataset.section === 'battle') loadBattleSection();
+      if (btn.dataset.section === 'profile') loadProfileSection();
     });
   });
 }
@@ -882,6 +896,90 @@ async function renderBattleLists() {
       });
     });
   });
+}
+
+/* ===================== PROFIL ===================== */
+
+// Formatte un temps restant en "Xh Ymin" pour le prochain claim quotidien.
+function formatRemaining(ms) {
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return `${hours}h ${minutes}min`;
+  return `${minutes}min`;
+}
+
+async function loadProfileSection() {
+  if (!state.currentUser) {
+    document.getElementById('section-profile').innerHTML = '<p class="screen__empty" style="padding:24px">Connecte-toi avec Discord pour voir ton profil.</p>';
+    return;
+  }
+
+  el.profileAvatar.src = state.currentUser.avatarUrl || '';
+  el.profileUsername.textContent = state.currentUser.username;
+
+  await Promise.all([refreshProfileSummary(), renderBoosterHistory()]);
+
+  el.dailyClaimBtn.onclick = async () => {
+    el.dailyClaimError.hidden = true;
+    el.dailyClaimBtn.disabled = true;
+    try {
+      const { coins } = await api('/api/profile/daily-claim', { method: 'POST' });
+      el.profileCoins.textContent = coins;
+      await refreshProfileSummary();
+    } catch (err) {
+      el.dailyClaimError.textContent = err.message;
+      el.dailyClaimError.hidden = false;
+      el.dailyClaimBtn.disabled = false;
+    }
+  };
+}
+
+async function refreshProfileSummary() {
+  const profile = await api('/api/profile');
+
+  el.profileCoins.textContent = profile.coins;
+  el.profileStatCaptures.textContent = profile.totalCaptures;
+  el.profileStatWins.textContent = profile.victoires;
+  el.profileStatLosses.textContent = profile.defaites;
+  el.profileStatWinrate.textContent = profile.winrate === null ? '—' : `${profile.winrate}%`;
+
+  el.dailyClaimAmount.textContent = profile.dailyCoinsAmount;
+
+  if (profile.canClaimDaily) {
+    el.dailyClaimBtn.disabled = false;
+    el.dailyClaimHint.textContent = 'Ton bonus du jour est disponible !';
+  } else {
+    el.dailyClaimBtn.disabled = true;
+    el.dailyClaimHint.textContent = `Prochain bonus dans ${formatRemaining(profile.nextClaimInMs)}.`;
+  }
+}
+
+async function renderBoosterHistory() {
+  const { history } = await api('/api/profile/booster-history');
+
+  el.boosterHistoryList.innerHTML = history.length
+    ? history.map((opening) => {
+        const date = new Date(opening.openedAt).toLocaleString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const thumbs = opening.cards
+          .map((c) => (c.imageUrl ? `<img src="${c.imageUrl}" alt="${c.nameFr}" title="${c.nameFr}" />` : ''))
+          .join('');
+        return `
+          <div class="list-item">
+            <div class="booster-history-item__thumbs">${thumbs}</div>
+            <div class="booster-history-item__meta">
+              <span class="list-item__text">${opening.isStarter ? 'Booster de départ' : `Booster ${opening.setId || ''}`}</span>
+              <span class="booster-history-item__date">${date}</span>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : '<p class="list__empty">Aucun booster ouvert pour l\'instant.</p>';
 }
 
 init();
