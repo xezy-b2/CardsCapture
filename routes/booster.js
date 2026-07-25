@@ -3,6 +3,7 @@ const router = express.Router();
 const { requireAuth } = require('../middleware/requireAuth');
 const Card = require('../src/models/Card');
 const User = require('../src/models/User');
+const BoosterOpening = require('../src/models/BoosterOpening');
 const { claimStarterBooster, openBooster, BoosterError, BOOSTER_COST } = require('../src/services/boosterEconomy');
 
 // Liste des extensions groupées par série (triées chronologiquement), pour le sélecteur
@@ -58,9 +59,31 @@ router.get('/status', requireAuth, async (req, res) => {
   });
 });
 
+// Empêche un souci de logging d'historique de casser l'ouverture du booster
+// elle-même : le joueur a déjà reçu ses cartes, on ne veut pas faire échouer
+// la requête pour un problème purement cosmétique (l'onglet Profil).
+async function logBoosterOpening(userId, setId, pulled, isStarter) {
+  try {
+    await BoosterOpening.create({
+      userId,
+      setId,
+      isStarter,
+      cards: pulled.map((c) => ({
+        cardId: c._id,
+        nameFr: c.nameFr,
+        rarity: c.rarity,
+        imageUrl: c.imageUrl
+      }))
+    });
+  } catch (err) {
+    console.error("Erreur lors de l'enregistrement de l'historique du booster :", err);
+  }
+}
+
 router.post('/start', requireAuth, async (req, res) => {
   try {
     const { pulled, setId } = await claimStarterBooster(req.session.user.id, req.session.user.username);
+    await logBoosterOpening(req.session.user.id, setId, pulled, true);
     res.json({ cards: pulled, setId });
   } catch (err) {
     if (err instanceof BoosterError) return res.status(400).json({ error: err.message });
@@ -72,6 +95,7 @@ router.post('/start', requireAuth, async (req, res) => {
 router.post('/open', requireAuth, async (req, res) => {
   try {
     const result = await openBooster(req.session.user.id, req.session.user.username, req.body.setId);
+    await logBoosterOpening(req.session.user.id, result.setId, result.pulled, false);
     res.json({
       cards: result.pulled,
       setId: result.setId,
