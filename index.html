@@ -29,6 +29,7 @@
       <button class="main-tab" data-section="trades">Échanges</button>
       <button class="main-tab" data-section="deck">Deck</button>
       <button class="main-tab" data-section="battle">Combats</button>
+      <button class="main-tab" data-section="profile">Profil</button>
     </nav>
 
     <!-- ===================== COLLECTION ===================== -->
@@ -184,6 +185,40 @@
         <div id="battleHistory" class="list"></div>
       </div>
     </section>
+
+    <!-- ===================== PROFIL ===================== -->
+    <section id="section-profile" class="app-section" hidden>
+      <div class="panel profile-hero">
+        <img id="profileAvatar" class="profile-avatar" src="" alt="" />
+        <div class="profile-hero__info">
+          <h2 id="profileUsername" class="profile-hero__username">—</h2>
+          <p class="profile-hero__coins"><span id="profileCoins">0</span> coins</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Bonus quotidien</h2>
+        <p class="panel__hint" id="dailyClaimHint">Reviens chaque jour pour récupérer des coins gratuits !</p>
+        <button id="dailyClaimBtn" class="btn-primary">🎁 Réclamer mes <span id="dailyClaimAmount">50</span> coins</button>
+        <p id="dailyClaimError" class="form-error" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Statistiques</h2>
+        <div class="profile-stats-grid">
+          <div class="profile-card__stat"><span class="profile-card__value" id="profileStatCaptures">0</span><span class="profile-card__label">Captures</span></div>
+          <div class="profile-card__stat"><span class="profile-card__value" id="profileStatWins">0</span><span class="profile-card__label">Victoires</span></div>
+          <div class="profile-card__stat"><span class="profile-card__value" id="profileStatLosses">0</span><span class="profile-card__label">Défaites</span></div>
+          <div class="profile-card__stat"><span class="profile-card__value" id="profileStatWinrate">—</span><span class="profile-card__label">Taux de victoire</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Historique des boosters ouverts</h2>
+        <div id="boosterHistoryList" class="list"></div>
+      </div>
+    </section>
+
   </div>
 
   <!-- ===================== OVERLAY OUVERTURE DE BOOSTER ===================== -->
