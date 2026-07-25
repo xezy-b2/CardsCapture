@@ -61,12 +61,19 @@ app.use(['/auth', '/api'], (req, res, next) => {
 });
 
 app.use('/auth', authRoutes);
+// profileRoutes est monté AVANT collectionRoutes : sinon la route existante
+// /api/profile/:discordId (dans collection.js) intercepte des requêtes comme
+// /api/profile/booster-history en traitant "booster-history" comme un ID
+// Discord. Express essaie les routeurs dans l'ordre de montage, donc
+// booster-history / daily-claim doivent être testés en premier ; toute
+// requête /api/profile/<id> qui ne matche aucune de nos routes retombe
+// automatiquement (next()) sur collectionRoutes juste après.
+app.use('/api/profile', profileRoutes);
 app.use('/api', collectionRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/deck', deckRoutes);
 app.use('/api/battle', battleRoutes);
 app.use('/api/booster', boosterRoutes);
-app.use('/api/profile', profileRoutes);
 
 async function start() {
   await connectDB();
