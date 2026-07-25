@@ -1229,3 +1229,81 @@ body.no-scroll { overflow: hidden; }
   font-style: italic;
   margin: 0;
 }
+
+/* ---------- Profil ---------- */
+
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--red-shell);
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  flex-shrink: 0;
+}
+
+.profile-hero__username {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--ink);
+}
+
+.profile-hero__coins {
+  margin: 4px 0 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--red-shell-dark);
+}
+
+.profile-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.profile-stats-grid .profile-card__stat {
+  flex: 1;
+  min-width: 110px;
+  border-right: none;
+  background: var(--cream-screen);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+}
+
+#dailyClaimBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.booster-history-item__thumbs {
+  display: flex;
+  gap: -6px;
+}
+
+.booster-history-item__thumbs img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-right: -10px;
+}
+
+.booster-history-item__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.booster-history-item__date {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
