@@ -59,6 +59,7 @@ const el = {
   boosterFormError: document.getElementById('boosterFormError'),
   boosterResultPanel: document.getElementById('boosterResultPanel'),
   boosterResultCards: document.getElementById('boosterResultCards'),
+  boosterResultCoinsSpent: document.getElementById('boosterResultCoinsSpent'),
   boosterCompletionMessage: document.getElementById('boosterCompletionMessage'),
 
   boosterOpenOverlay: document.getElementById('boosterOpenOverlay'),
@@ -421,12 +422,12 @@ async function loadBoostersSection() {
   const status = await api('/api/booster/status');
   el.boosterCoins.textContent = status.coins;
   el.boosterStartBlock.hidden = status.hasStarted;
-  el.boosterCostHint.textContent = `Coût : ${status.boosterCost} coins`;
 
   if (!boosterSetsLoaded) {
     await populateBoosterSetSelect();
     boosterSetsLoaded = true;
   }
+  el.boosterSetSelect.dispatchEvent(new Event('change'));
 
   el.boosterStartBtn.onclick = async () => {
     el.boosterFormError.hidden = true;
@@ -443,12 +444,12 @@ async function loadBoostersSection() {
   el.boosterOpenBtn.onclick = async () => {
     el.boosterFormError.hidden = true;
     try {
-      const { cards, completionBonusApplied, coinsRemaining } = await api('/api/booster/open', {
+      const { cards, completionBonusApplied, coinsRemaining, coinsSpent } = await api('/api/booster/open', {
         method: 'POST',
         body: JSON.stringify({ setId: el.boosterSetSelect.value })
       });
       el.boosterCoins.textContent = coinsRemaining;
-      playBoosterOpening(cards, completionBonusApplied);
+      playBoosterOpening(cards, completionBonusApplied, coinsSpent);
     } catch (err) {
       el.boosterFormError.textContent = err.message;
       el.boosterFormError.hidden = false;
@@ -486,9 +487,10 @@ function sleep(ms) {
 // Lance la séquence complète : paquet fermé -> déchirure au clic -> reveal
 // des cartes une par une (le "hit" rare/légendaire est révélé en dernier,
 // pour le suspense), puis bouton "Continuer" qui affiche le récap habituel.
-function playBoosterOpening(cards, completionBonusApplied) {
+function playBoosterOpening(cards, completionBonusApplied, coinsSpent) {
   boosterAnim.finalCards = cards;
   boosterAnim.finalCompletionBonusApplied = completionBonusApplied;
+  boosterAnim.finalCoinsSpent = coinsSpent;
   boosterAnim.skip = false;
 
   document.body.classList.add('no-scroll');
@@ -595,8 +597,10 @@ function spawnSparkles(container) {
 el.boosterContinueBtn.onclick = () => {
   setVisible(el.boosterOpenOverlay, false);
   document.body.classList.remove('no-scroll');
-  renderBoosterResult(boosterAnim.finalCards, boosterAnim.finalCompletionBonusApplied);
+  renderBoosterResult(boosterAnim.finalCards, boosterAnim.finalCompletionBonusApplied, boosterAnim.finalCoinsSpent);
 };
+
+let boosterSetPrices = {}; // setId -> price, rempli par populateBoosterSetSelect()
 
 async function populateBoosterSetSelect() {
   const { series } = await api('/api/booster/sets');
@@ -605,16 +609,24 @@ async function populateBoosterSetSelect() {
     const optgroup = document.createElement('optgroup');
     optgroup.label = serieName;
     for (const s of sets) {
+      boosterSetPrices[s.setId] = s.price;
       const opt = document.createElement('option');
       opt.value = s.setId;
-      opt.textContent = s.setName;
+      opt.textContent = `${s.setName} — ${s.price} coins`;
       optgroup.appendChild(opt);
     }
     el.boosterSetSelect.appendChild(optgroup);
   }
+
+  el.boosterSetSelect.onchange = () => {
+    const price = boosterSetPrices[el.boosterSetSelect.value];
+    el.boosterCostHint.textContent = price
+      ? `Coût : ${price} coins`
+      : 'Coût : varie selon l\'extension tirée';
+  };
 }
 
-function renderBoosterResult(cards, completionBonusApplied) {
+function renderBoosterResult(cards, completionBonusApplied, coinsSpent) {
   el.boosterResultPanel.hidden = false;
   el.boosterResultCards.innerHTML = cards
     .map(
@@ -627,6 +639,13 @@ function renderBoosterResult(cards, completionBonusApplied) {
       `
     )
     .join('');
+
+  if (coinsSpent) {
+    el.boosterResultCoinsSpent.hidden = false;
+    el.boosterResultCoinsSpent.textContent = `Booster payé ${coinsSpent} coins.`;
+  } else {
+    el.boosterResultCoinsSpent.hidden = true;
+  }
 
   el.boosterCompletionMessage.hidden = !completionBonusApplied;
   el.boosterResultPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -938,25 +957,29 @@ async function loadProfileSection() {
 async function refreshProfileSummary() {
   const profile = await api('/api/profile');
 
-  el.profileCoins.textContent = profile.coins;
-  el.profileStatCaptures.textContent = profile.totalCaptures;
-  el.profileStatWins.textContent = profile.victoires;
-  el.profileStatLosses.textContent = profile.defaites;
-  el.profileStatWinrate.textContent = profile.winrate === null ? '—' : `${profile.winrate}%`;
+  el.profileCoins.textContent = profile.coins ?? 0;
+  el.profileStatCaptures.textContent = profile.totalCaptures ?? 0;
+  el.profileStatWins.textContent = profile.victoires ?? 0;
+  el.profileStatLosses.textContent = profile.defaites ?? 0;
+  el.profileStatWinrate.textContent = profile.winrate == null ? '—' : `${profile.winrate}%`;
 
-  el.dailyClaimAmount.textContent = profile.dailyCoinsAmount;
+  el.dailyClaimAmount.textContent = profile.dailyCoinsAmount ?? 50;
 
   if (profile.canClaimDaily) {
     el.dailyClaimBtn.disabled = false;
     el.dailyClaimHint.textContent = 'Ton bonus du jour est disponible !';
-  } else {
+  } else if (profile.nextClaimInMs) {
     el.dailyClaimBtn.disabled = true;
     el.dailyClaimHint.textContent = `Prochain bonus dans ${formatRemaining(profile.nextClaimInMs)}.`;
+  } else {
+    el.dailyClaimBtn.disabled = true;
+    el.dailyClaimHint.textContent = "Impossible de récupérer ton statut pour l'instant.";
   }
 }
 
 async function renderBoosterHistory() {
-  const { history } = await api('/api/profile/booster-history');
+  const data = await api('/api/profile/booster-history');
+  const history = Array.isArray(data.history) ? data.history : [];
 
   el.boosterHistoryList.innerHTML = history.length
     ? history.map((opening) => {
