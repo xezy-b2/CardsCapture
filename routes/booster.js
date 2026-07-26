@@ -4,20 +4,23 @@ const { requireAuth } = require('../middleware/requireAuth');
 const Card = require('../src/models/Card');
 const User = require('../src/models/User');
 const BoosterOpening = require('../src/models/BoosterOpening');
-const { claimStarterBooster, openBooster, BoosterError, BOOSTER_COST } = require('../src/services/boosterEconomy');
+const { claimStarterBooster, openBooster, BoosterError, BOOSTER_COST, getSetPricesMap } = require('../src/services/boosterEconomy');
 
 // Liste des extensions groupées par série (triées chronologiquement), pour le sélecteur
 router.get('/sets', async (req, res) => {
   try {
-    const sets = await Card.aggregate([
-      {
-        $group: {
-          _id: '$setId',
-          setName: { $first: '$setName' },
-          serieName: { $first: '$serieName' },
-          setReleaseDate: { $first: '$setReleaseDate' }
+    const [sets, priceMap] = await Promise.all([
+      Card.aggregate([
+        {
+          $group: {
+            _id: '$setId',
+            setName: { $first: '$setName' },
+            serieName: { $first: '$serieName' },
+            setReleaseDate: { $first: '$setReleaseDate' }
+          }
         }
-      }
+      ]),
+      getSetPricesMap()
     ]);
 
     const serieMap = new Map();
@@ -35,7 +38,11 @@ router.get('/sets', async (req, res) => {
         }, new Date());
         return {
           serieName,
-          sets: setsInSerie.map((s) => ({ setId: s._id, setName: s.setName })),
+          sets: setsInSerie.map((s) => ({
+            setId: s._id,
+            setName: s.setName,
+            price: priceMap[s._id] ?? BOOSTER_COST
+          })),
           earliest
         };
       })
@@ -100,7 +107,8 @@ router.post('/open', requireAuth, async (req, res) => {
       cards: result.pulled,
       setId: result.setId,
       completionBonusApplied: result.completionBonusApplied,
-      coinsRemaining: result.coinsRemaining
+      coinsRemaining: result.coinsRemaining,
+      coinsSpent: result.coinsSpent
     });
   } catch (err) {
     if (err instanceof BoosterError) return res.status(400).json({ error: err.message });
