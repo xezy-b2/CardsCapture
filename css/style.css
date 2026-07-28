@@ -1424,8 +1424,8 @@ body.no-scroll { overflow: hidden; }
   top: 6px;
   right: 6px;
   z-index: 2;
-  width: 26px;
-  height: 26px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: none;
   background: rgba(0, 0, 0, 0.55);
