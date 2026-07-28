@@ -16,7 +16,14 @@ router.get('/owned-cards', requireAuth, async (req, res) => {
           nameFr: o.cardId.nameFr,
           localId: o.cardId.localId,
           rarity: o.cardId.rarity,
+          officialRarity: o.cardId.officialRarity,
           imageUrl: o.cardId.imageUrl,
+          hp: o.cardId.hp,
+          stage: o.cardId.stage,
+          category: o.cardId.category,
+          types: o.cardId.types,
+          attacks: o.cardId.attacks,
+          illustrator: o.cardId.illustrator,
           quantity: o.quantity
         }))
     });
