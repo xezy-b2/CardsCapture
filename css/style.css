@@ -1307,3 +1307,137 @@ body.no-scroll { overflow: hidden; }
   font-size: 11.5px;
   color: var(--ink-faint);
 }
+
+/* ---------- Quêtes du jour ---------- */
+
+.quests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.quest-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--cream-screen);
+  border-radius: var(--radius-sm);
+}
+
+.quest-item.is-claimed {
+  opacity: 0.6;
+}
+
+.quest-item__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.quest-item__label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.quest-item__reward {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--red-shell-dark);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.quest-item__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.quest-item__bar-fill {
+  height: 100%;
+  background: var(--red-shell);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.quest-item.is-claimed .quest-item__bar-fill { background: #8a8a8a; }
+
+.quest-item__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.quest-item__progress-text {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.quest-item__claim-btn {
+  font-size: 12.5px;
+  padding: 6px 12px;
+}
+
+.quest-item__claim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Filtres du sélecteur de deck + zoom ---------- */
+
+.deck-picker-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin: 8px 0;
+}
+
+.deck-picker-filters select {
+  flex: 1;
+  min-width: 140px;
+}
+
+.deck-picker-filters__hp {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+.deck-picker-filters__hp input {
+  width: 72px;
+}
+
+.card-tile {
+  position: relative;
+}
+
+.card-tile__zoom {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.card-tile__zoom:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
