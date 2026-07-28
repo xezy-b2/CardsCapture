@@ -42,6 +42,9 @@ const el = {
   deckPickerSearch: document.getElementById('deckPickerSearch'),
   deckPickerList: document.getElementById('deckPickerList'),
   deckPickerClose: document.getElementById('deckPickerClose'),
+  deckPickerRarity: document.getElementById('deckPickerRarity'),
+  deckPickerHpMin: document.getElementById('deckPickerHpMin'),
+  deckPickerHpMax: document.getElementById('deckPickerHpMax'),
 
   battleTargetSelect: document.getElementById('battleTargetSelect'),
   battleChallengeBtn: document.getElementById('battleChallengeBtn'),
@@ -83,7 +86,8 @@ const el = {
   profileStatWins: document.getElementById('profileStatWins'),
   profileStatLosses: document.getElementById('profileStatLosses'),
   profileStatWinrate: document.getElementById('profileStatWinrate'),
-  boosterHistoryList: document.getElementById('boosterHistoryList')
+  boosterHistoryList: document.getElementById('boosterHistoryList'),
+  questsList: document.getElementById('questsList')
 };
 
 async function api(path, options = {}) {
@@ -800,28 +804,68 @@ function renderDeckSlots() {
   });
 }
 
+let deckPickerCards = [];
+
 async function openDeckPicker(slotIndex) {
   state.activeDeckSlot = slotIndex;
   el.deckPicker.hidden = false;
-  const { cards } = await api('/api/deck/owned-cards');
-  renderDeckPickerList(cards, '');
+
   el.deckPickerSearch.value = '';
-  el.deckPickerSearch.oninput = (e) => {
-    const term = e.target.value.toLowerCase();
-    renderDeckPickerList(cards, term);
-  };
+  el.deckPickerRarity.value = 'all';
+  el.deckPickerHpMin.value = '';
+  el.deckPickerHpMax.value = '';
+
+  const { cards } = await api('/api/deck/owned-cards');
+  deckPickerCards = cards;
+  applyDeckPickerFilters();
+
+  const rerender = () => applyDeckPickerFilters();
+  el.deckPickerSearch.oninput = rerender;
+  el.deckPickerRarity.onchange = rerender;
+  el.deckPickerHpMin.oninput = rerender;
+  el.deckPickerHpMax.oninput = rerender;
 }
 
-function renderDeckPickerList(cards, term) {
-  const filtered = cards.filter((c) => c.nameFr.toLowerCase().includes(term));
+function applyDeckPickerFilters() {
+  const term = el.deckPickerSearch.value.toLowerCase();
+  const rarity = el.deckPickerRarity.value;
+  const hpMin = el.deckPickerHpMin.value === '' ? null : Number(el.deckPickerHpMin.value);
+  const hpMax = el.deckPickerHpMax.value === '' ? null : Number(el.deckPickerHpMax.value);
+
+  const filtered = deckPickerCards.filter((c) => {
+    if (!c.nameFr.toLowerCase().includes(term)) return false;
+    if (rarity !== 'all' && c.rarity !== rarity) return false;
+    // Les cartes Dresseur/Énergie n'ont pas de PV : on les exclut dès qu'un
+    // filtre PV est actif (sinon "PV min: 50" resterait ambigu pour elles).
+    if (hpMin !== null && !(c.hp >= hpMin)) return false;
+    if (hpMax !== null && !(c.hp <= hpMax)) return false;
+    return true;
+  });
+
+  renderDeckPickerList(filtered);
+}
+
+function renderDeckPickerList(filtered) {
   el.deckPickerList.innerHTML = filtered.map((c, i) => `
     <div class="card-tile" data-rarity="${c.rarity}" data-index="${i}">
+      <button type="button" class="card-tile__zoom" data-index="${i}" aria-label="Zoomer sur ${c.nameFr}">🔍</button>
       <div class="card-tile__dex">№${c.localId}</div>
       <img class="card-tile__image" src="${c.imageUrl}" alt="${c.nameFr}" />
       <div class="card-tile__name">${c.nameFr}</div>
+      ${c.hp ? `<div class="card-tile__hp">PV ${c.hp}</div>` : ''}
       ${c.quantity > 1 ? `<div class="card-tile__quantity">×${c.quantity}</div>` : ''}
     </div>
   `).join('') || '<p class="list__empty">Aucune carte trouvée.</p>';
+
+  // Zoom : ouvre le détail sans toucher au deck (stopPropagation empêche le
+  // clic de "remonter" jusqu'au gestionnaire de la tuile qui ajoute la carte).
+  el.deckPickerList.querySelectorAll('.card-tile__zoom').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const card = filtered[Number(btn.dataset.index)];
+      openCardDetail({ ...card, owned: true });
+    });
+  });
 
   el.deckPickerList.querySelectorAll('.card-tile').forEach((tile) => {
     tile.addEventListener('click', () => {
@@ -937,7 +981,7 @@ async function loadProfileSection() {
   el.profileAvatar.src = state.currentUser.avatarUrl || '';
   el.profileUsername.textContent = state.currentUser.username;
 
-  await Promise.all([refreshProfileSummary(), renderBoosterHistory()]);
+  await Promise.all([refreshProfileSummary(), renderBoosterHistory(), renderQuests()]);
 
   el.dailyClaimBtn.onclick = async () => {
     el.dailyClaimError.hidden = true;
@@ -1003,6 +1047,53 @@ async function renderBoosterHistory() {
         `;
       }).join('')
     : '<p class="list__empty">Aucun booster ouvert pour l\'instant.</p>';
+}
+
+async function renderQuests() {
+  const data = await api('/api/quests');
+  const quests = Array.isArray(data.quests) ? data.quests : [];
+
+  el.questsList.innerHTML = quests
+    .map((q) => {
+      const pct = Math.round((q.progress / q.target) * 100);
+      let buttonHtml;
+      if (q.claimed) {
+        buttonHtml = `<button class="btn-secondary quest-item__claim-btn" disabled>Réclamée ✓</button>`;
+      } else if (q.completed) {
+        buttonHtml = `<button class="btn-primary quest-item__claim-btn" data-quest-id="${q.id}">Réclamer</button>`;
+      } else {
+        buttonHtml = `<button class="btn-secondary quest-item__claim-btn" disabled>En cours</button>`;
+      }
+
+      return `
+        <div class="quest-item ${q.claimed ? 'is-claimed' : ''}">
+          <div class="quest-item__top">
+            <span class="quest-item__label">${q.label}</span>
+            <span class="quest-item__reward">+${q.reward} coins</span>
+          </div>
+          <div class="quest-item__bar"><div class="quest-item__bar-fill" style="width:${pct}%"></div></div>
+          <div class="quest-item__bottom">
+            <span class="quest-item__progress-text">${q.progress} / ${q.target}</span>
+            ${buttonHtml}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  el.questsList.querySelectorAll('button[data-quest-id]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      try {
+        const { coins } = await api(`/api/quests/${btn.dataset.questId}/claim`, { method: 'POST' });
+        el.profileCoins.textContent = coins;
+        await renderQuests();
+      } catch (err) {
+        alert(err.message);
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 init();
