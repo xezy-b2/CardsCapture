@@ -154,6 +154,20 @@
       <div id="deckPicker" class="panel" hidden>
         <h2 class="panel__title">Choisis une carte</h2>
         <input id="deckPickerSearch" type="text" placeholder="Rechercher dans ta collection..." />
+        <div class="deck-picker-filters">
+          <select id="deckPickerRarity">
+            <option value="all">Toutes les raretés</option>
+            <option value="Commune">Commune</option>
+            <option value="Rare">Rare</option>
+            <option value="Légendaire">Légendaire</option>
+          </select>
+          <label class="deck-picker-filters__hp">PV min
+            <input id="deckPickerHpMin" type="number" min="0" placeholder="0" />
+          </label>
+          <label class="deck-picker-filters__hp">PV max
+            <input id="deckPickerHpMax" type="number" min="0" placeholder="300" />
+          </label>
+        </div>
         <div id="deckPickerList" class="card-grid card-grid--small"></div>
         <button id="deckPickerClose" class="btn-secondary">Fermer</button>
       </div>
@@ -202,6 +216,12 @@
         <p class="panel__hint" id="dailyClaimHint">Reviens chaque jour pour récupérer des coins gratuits !</p>
         <button id="dailyClaimBtn" class="btn-primary">🎁 Réclamer mes <span id="dailyClaimAmount">50</span> coins</button>
         <p id="dailyClaimError" class="form-error" hidden></p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel__title">Quêtes du jour</h2>
+        <p class="panel__hint">Se réinitialisent chaque jour à minuit.</p>
+        <div id="questsList" class="quests-list"></div>
       </div>
 
       <div class="panel">
