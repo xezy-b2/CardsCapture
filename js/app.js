@@ -394,9 +394,13 @@ function openCardDetail(card) {
       )
       .join('');
 
+    const ownedImageHtml = card.imageUrl
+      ? `<img class="card-detail__image" src="${card.imageUrl}" alt="${card.nameFr}" />`
+      : `<div class="card-detail__image card-detail__image--none">🃏</div>`;
+
     body.innerHTML = `
       <div class="card-detail__dex">№${card.localId}</div>
-      <img class="card-detail__image" src="${card.imageUrl}" alt="${card.nameFr}" />
+      ${ownedImageHtml}
       <h3 class="card-detail__name">${card.nameFr}</h3>
       <div class="card-detail__badges">
         <span class="rarity-badge" data-rarity="${card.rarity}">${card.officialRarity}</span>
