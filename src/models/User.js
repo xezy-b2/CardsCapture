@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   lastCoinEarnedAt: { type: Date }, // pour le cooldown anti-spam des coins de chat
   lastDailyClaimAt: { type: Date }, // pour le cooldown du /daily
   completedSets: [{ type: String }], // setId des extensions déjà complétées à 100% (bonus one-shot)
+  claimedQuests: [{ type: String }], // ids des quêtes déjà réclamées (pour ne pas re-payer la récompense)
 
   createdAt: { type: Date, default: Date.now }
 });
