@@ -12,6 +12,7 @@ const deckRoutes = require('./routes/deck');
 const battleRoutes = require('./routes/battle');
 const boosterRoutes = require('./routes/booster');
 const profileRoutes = require('./routes/profile');
+const questRoutes = require('./routes/quests');
 
 const app = express();
 const PORT = process.env.PORT || process.env.WEB_PORT || 3000;
@@ -74,6 +75,7 @@ app.use('/api/trades', tradeRoutes);
 app.use('/api/deck', deckRoutes);
 app.use('/api/battle', battleRoutes);
 app.use('/api/booster', boosterRoutes);
+app.use('/api/quests', questRoutes);
 
 async function start() {
   await connectDB();
